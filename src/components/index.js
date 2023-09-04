@@ -1,4 +1,4 @@
 import Background from './screens/Background';
-import ImgAppLogo from './images/app_logo.png';
+import Gap from './screens/Gap';
 
-export {Background, ImgAppLogo};
+export {Gap, Background};

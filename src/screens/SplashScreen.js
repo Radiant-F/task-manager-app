@@ -1,31 +1,47 @@
-import {StyleSheet, Text, View, Button, Image} from 'react-native';
 import React, {useEffect} from 'react';
-import EncryptedStorage from 'react-native-encrypted-storage';
+import {View, Text, Image, StyleSheet} from 'react-native';
 import {Background} from '../components';
-import {ImgAppLogo} from '../components';
+import EncryptedStorage from 'react-native-encrypted-storage';
 
 export default function SplashScreen({navigation}) {
-  //   useEffect(() => {
-  //     EncryptedStorage.getItem('user_credential')
-  //       .then(credential => {
-  //         const parsedCredential = JSON.parse(credential);
-  //         if (parsedCredential) {
-  //           setTimeout(() => {
-  //             navigation.replace('Home');
-  //           }, 2000);
-  //         } else {
-  //           navigation.navigate('SignIn');
-  //         }
-  //       })
-  //       .catch(error => {
-  //         console.log(error);
-  //       });
-  //   }, []);
+  useEffect(() => {
+    EncryptedStorage.getItem('user_credential', value => {
+      const credential = JSON.parse(value);
+      if (credential) {
+        fetch(
+          'https://todoapi-production-61ef.up.railway.app/api/v1/auth/login',
+          {
+            method: 'POST',
+            body: JSON.stringify(credential),
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        )
+          .then(response => response.json())
+          .then(json => {
+            if (json.status == 'success') {
+              navigation.replace('Home', {data: json});
+            } else navigation.replace('SignIn');
+          })
+          .catch(err => {
+            console.log(err);
+            navigation.replace('SignIn');
+          });
+      } else
+        setTimeout(() => {
+          navigation.replace('SignIn');
+        }, 3000);
+    });
+  }, []);
 
   return (
     <View style={styles.container}>
       <Background />
-      <Image source={ImgAppLogo} style={{width: 120, height: 120}} />
+      <Image
+        source={require('../assets/images/app_logo.png')}
+        style={{width: 150, height: 150}}
+      />
       <Text style={styles.textVersion}>v0.0.1-alpha-rc</Text>
     </View>
   );
@@ -33,12 +49,15 @@ export default function SplashScreen({navigation}) {
 
 const styles = StyleSheet.create({
   textVersion: {
+    color: 'white',
+    fontFamily: 'HelveticaNeue-MediumExt',
     position: 'absolute',
     bottom: 5,
-    fontFamily: 'HelveticaNeue-Extended',
+    fontSize: 10,
   },
   container: {
     flex: 1,
+    backgroundColor: 'black',
     justifyContent: 'center',
     alignItems: 'center',
   },

@@ -1,6 +1,6 @@
-import SplashScreen from './SplashScreen';
+import Home from './Home';
 import SignIn from './SignIn';
 import SignUp from './SignUp';
-import Home from './Home';
+import SplashScreen from './SplashScreen';
 
-export {SplashScreen, SignIn, SignUp, Home};
+export {Home, SignIn, SignUp, SplashScreen};

@@ -1,7 +1,7 @@
 import React from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import {SplashScreen, SignIn, SignUp, Home} from '../screens';
+import {Home, SignIn, SignUp, SplashScreen} from '../screens';
 import RNBootSplash from 'react-native-bootsplash';
 
 const Stack = createNativeStackNavigator();
