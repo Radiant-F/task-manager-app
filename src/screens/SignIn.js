@@ -48,8 +48,6 @@ export default function SignIn({navigation}) {
         setLoading(false);
         console.log(`Error: ${err}`);
       });
-    // console.log({email, password});
-    // navigation.navigate('Home');
   }
 
   return (

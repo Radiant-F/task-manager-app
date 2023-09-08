@@ -1,6 +1,5 @@
 import {
   FlatList,
-  StatusBar,
   StyleSheet,
   Text,
   TouchableNativeFeedback,
@@ -8,18 +7,20 @@ import {
   Platform,
   UIManager,
   LayoutAnimation,
-  Modal,
-  Pressable,
-  TextInput,
-  TouchableOpacity,
-  ActivityIndicator,
   Alert,
   ToastAndroid,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
-import {Background, Gap} from '../components';
+import {
+  Background,
+  Gap,
+  UserProfile,
+  RenderItem,
+  ModalAddTask,
+  ModalEditTask,
+  HelveticaNeueMedium,
+} from '../components';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import CheckBox from '@react-native-community/checkbox';
 
 if (Platform.OS === 'android') {
   if (UIManager.setLayoutAnimationEnabledExperimental) {
@@ -111,13 +112,11 @@ export default function Home({route}) {
     })
       .then(response => response.json())
       .then(json => {
+        setLoadingEdit(false);
         if (json.status == 'success') {
           getTasks();
           setModalEditVisible(false);
-        } else {
-          console.log(json);
-          setLoadingEdit(false);
-        }
+        } else console.log(json);
       })
       .catch(err => {
         setLoadingEdit(false);
@@ -196,285 +195,99 @@ export default function Home({route}) {
     <View style={styles.container}>
       <Background />
 
-      {/* user profile */}
-      <View style={styles.viewProfile}>
-        <View>
-          <Text style={styles.textDefault}>Hi,</Text>
-          <Text style={styles.textUserName}>User Name</Text>
-        </View>
-        <Icon name="account-circle" color="white" size={50} />
+      <View style={styles.viewContainer}>
+        {/* user profile */}
+        <UserProfile token={token} />
+
+        <View style={styles.viewLine} />
+
+        {/* view data */}
+        <FlatList
+          data={tasks}
+          keyExtractor={(item, index) => index}
+          refreshing={loading}
+          onRefresh={getTasks}
+          ListFooterComponent={<Gap height={20} />}
+          ListEmptyComponent={
+            <Text style={styles.textEmpty}>Tidak ada tugas</Text>
+          }
+          renderItem={({item, index}) => {
+            const handleOpenDetail = () => {
+              LayoutAnimation.easeInEaseOut();
+              setOpenDetail(index == openDetail ? null : index);
+            };
+            const open = openDetail == index;
+            return (
+              <RenderItem
+                item={item}
+                onCheckBox={() => checklistTask(item)}
+                onPressDelete={() => confirmDelete(item._id)}
+                onPressDetail={handleOpenDetail}
+                onPressEdit={() => {
+                  setModalEditVisible(true);
+                  setEditedTask(item);
+                }}
+                open={open}
+              />
+            );
+          }}
+        />
+
+        {/* button add */}
+        <View style={styles.viewLine} />
+        <TouchableNativeFeedback
+          useForeground
+          onPress={() => setModalAddVisible(true)}>
+          <View style={styles.btnAdd}>
+            <Icon name="plus-circle-outline" color={'white'} size={20} />
+            <Gap width={5} />
+            <Text style={styles.textBtnTitle}>Tambah</Text>
+          </View>
+        </TouchableNativeFeedback>
+        <Gap height={30} />
+
+        {/* modal add */}
+        <ModalAddTask
+          loading={loadingAdd}
+          onChangeDesc={setDesc}
+          onChangeTitle={setTitle}
+          onPressSubmit={addTask}
+          onRequestClose={closeModal}
+          visible={modalAddVisible}
+        />
+
+        {/* modal edit */}
+        <ModalEditTask
+          loading={loadingEdit}
+          onChangeDesc={desc => setEditedTask({...editedTask, desc})}
+          onChangeTitle={title => setEditedTask({...editedTask, title})}
+          onPressSubmit={editTask}
+          onRequestClose={closeModalEdit}
+          valueDesc={editedTask.desc}
+          valueTitle={editedTask.title}
+          visible={modalEditVisible}
+        />
       </View>
-
-      <View style={styles.viewLine} />
-
-      {/* view data */}
-      <FlatList
-        data={tasks}
-        keyExtractor={(item, index) => index}
-        refreshing={loading}
-        onRefresh={getTasks}
-        ListFooterComponent={<Gap height={20} />}
-        ListEmptyComponent={
-          <Text style={styles.textEmpty}>Tidak ada tugas</Text>
-        }
-        renderItem={({item, index}) => {
-          const handleOpenDetail = () => {
-            LayoutAnimation.easeInEaseOut();
-            setOpenDetail(index == openDetail ? null : index);
-          };
-          const open = openDetail == index;
-          return (
-            <View style={styles.viewItem}>
-              <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                <CheckBox
-                  value={item.checked}
-                  tintColors={{true: 'white', false: 'white'}}
-                  onValueChange={() => checklistTask(item)}
-                />
-                <Text style={styles.textItemTitle}>{item.title}</Text>
-                <TouchableNativeFeedback
-                  useForeground
-                  background={TouchableNativeFeedback.Ripple('#ffffff42')}
-                  onPress={handleOpenDetail}>
-                  <View style={styles.btnDetail}>
-                    <Icon
-                      name={open ? 'chevron-up' : 'chevron-down'}
-                      color={'white'}
-                      size={30}
-                    />
-                  </View>
-                </TouchableNativeFeedback>
-              </View>
-              {open && (
-                <View>
-                  <Text style={styles.textDefault}>{item.desc}</Text>
-                  <View style={styles.viewBtnOption}>
-                    <TouchableNativeFeedback
-                      useForeground
-                      onPress={() => confirmDelete(item._id)}>
-                      <View style={styles.btnDelete}>
-                        <Icon name="trash-can" color={'white'} size={20} />
-                      </View>
-                    </TouchableNativeFeedback>
-                    <Gap width={10} />
-                    <TouchableNativeFeedback
-                      useForeground
-                      onPress={() => {
-                        setModalEditVisible(true);
-                        setEditedTask(item);
-                      }}>
-                      <View style={styles.btnEdit}>
-                        <Icon name="pencil" color={'white'} size={20} />
-                        <Gap width={10} />
-                        <Text style={styles.textDefault}>Edit</Text>
-                      </View>
-                    </TouchableNativeFeedback>
-                  </View>
-                </View>
-              )}
-            </View>
-          );
-        }}
-      />
-
-      {/* button add */}
-      <View style={styles.viewLine} />
-      <TouchableNativeFeedback
-        useForeground
-        onPress={() => setModalAddVisible(true)}>
-        <View style={styles.btnAdd}>
-          <Icon name="plus-circle-outline" color={'white'} size={20} />
-          <Gap width={5} />
-          <Text style={styles.textBtnTitle}>Tambah</Text>
-        </View>
-      </TouchableNativeFeedback>
-      <Gap height={30} />
-
-      {/* modal add */}
-      <Modal
-        visible={modalAddVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={closeModal}>
-        <View style={styles.modalContainer}>
-          <Pressable style={styles.modalBackdrop} onPress={closeModal} />
-          <View style={styles.viewModalContainer}>
-            <View style={styles.viewModalHeader}>
-              <Icon name={'notebook-plus-outline'} color={'white'} size={23} />
-              <Text style={styles.textDefault}>Tambah Tugas</Text>
-              <TouchableOpacity onPress={closeModal}>
-                <Icon name={'close-circle-outline'} color={'white'} size={23} />
-              </TouchableOpacity>
-            </View>
-            <View style={styles.viewModalInput}>
-              {/* input task title */}
-              <Text style={styles.textInputTitle}>Judul</Text>
-              <View style={styles.viewInput}>
-                <Icon name={'gmail'} color={'black'} size={23} />
-                <TextInput
-                  placeholder="Judul tugas..."
-                  style={{flex: 1}}
-                  onChangeText={setTitle}
-                />
-              </View>
-
-              <Gap height={15} />
-
-              {/* input task desc */}
-              <Text style={styles.textInputTitle}>Deskripsi</Text>
-              <View style={styles.viewInput}>
-                <Icon name={'lock'} color={'black'} size={23} />
-                <TextInput
-                  placeholder="Deskripsi tugas.."
-                  style={{flex: 1}}
-                  onChangeText={setDesc}
-                />
-              </View>
-
-              <Gap height={30} />
-
-              {/* button submit */}
-              <TouchableNativeFeedback useForeground onPress={addTask}>
-                <View style={styles.btnSubmitAdd}>
-                  {loadingAdd ? (
-                    <ActivityIndicator color={'white'} />
-                  ) : (
-                    <Text style={styles.textBtnTitle}>Buat</Text>
-                  )}
-                </View>
-              </TouchableNativeFeedback>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      {/* modal edit */}
-      <Modal
-        visible={modalEditVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={closeModalEdit}>
-        <View style={styles.modalContainer}>
-          <Pressable style={styles.modalBackdrop} onPress={closeModalEdit} />
-          <View style={styles.viewModalContainer}>
-            <View style={styles.viewModalHeader}>
-              <Icon name={'notebook-edit-outline'} color={'white'} size={23} />
-              <Text style={styles.textDefault}>Edit Tugas</Text>
-              <TouchableOpacity onPress={closeModalEdit}>
-                <Icon name={'close-circle-outline'} color={'white'} size={23} />
-              </TouchableOpacity>
-            </View>
-            <View style={styles.viewModalInput}>
-              {/* input task title */}
-              <Text style={styles.textInputTitle}>Judul</Text>
-              <View style={styles.viewInput}>
-                <Icon name={'notebook-outline'} color={'black'} size={23} />
-                <TextInput
-                  placeholder="Judul tugas..."
-                  style={{flex: 1}}
-                  onChangeText={title => setEditedTask({...editedTask, title})}
-                  value={editedTask.title}
-                />
-              </View>
-
-              <Gap height={15} />
-
-              {/* input task desc */}
-              <Text style={styles.textInputTitle}>Deskripsi</Text>
-              <View style={styles.viewInput}>
-                <Icon name={'text-box-outline'} color={'black'} size={23} />
-                <TextInput
-                  placeholder="Deskripsi tugas.."
-                  style={{flex: 1}}
-                  onChangeText={desc => setEditedTask({...editedTask, desc})}
-                  value={editedTask.desc}
-                />
-              </View>
-
-              <Gap height={30} />
-
-              {/* button submit */}
-              <TouchableNativeFeedback useForeground onPress={editTask}>
-                <View style={styles.btnSubmitAdd}>
-                  {loadingEdit ? (
-                    <ActivityIndicator color={'white'} />
-                  ) : (
-                    <Text style={styles.textBtnTitle}>Ubah</Text>
-                  )}
-                </View>
-              </TouchableNativeFeedback>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  viewContainer: {
+    flex: 1,
+    width: '100%',
+    maxWidth: 630,
+    alignSelf: 'center',
+  },
   textEmpty: {
     color: 'white',
     textAlign: 'center',
-  },
-  btnSubmitAdd: {
-    height: 45,
-    width: 130,
-    backgroundColor: '#00677E',
-    overflow: 'hidden',
-    // paddingHorizontal: 50,
-    alignSelf: 'center',
-    borderRadius: 45 / 2,
-    elevation: 3,
-    justifyContent: 'center',
-  },
-  viewModalInput: {
-    padding: 30,
-    paddingTop: 0,
-  },
-  textInputTitle: {
-    color: 'white',
-    fontFamily: 'HelveticaNeue-Medium',
-    marginBottom: 5,
-  },
-  viewInput: {
-    backgroundColor: 'white',
-    height: 50,
-    flexDirection: 'row',
-    borderRadius: 50 / 2,
-    alignItems: 'center',
-    paddingHorizontal: 15,
-    elevation: 5,
-  },
-  viewModalHeader: {
-    flexDirection: 'row',
-    padding: 20,
-    justifyContent: 'space-between',
-  },
-  viewModalContainer: {
-    backgroundColor: '#164877',
-    width: '85%',
-    alignSelf: 'center',
-    maxWidth: 480,
-    borderRadius: 20,
-    elevation: 5,
-  },
-  modalBackdrop: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
-    backgroundColor: 'black',
-    opacity: 0.4,
-  },
-  modalContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    flex: 1,
   },
   textBtnTitle: {
     color: 'white',
     textAlign: 'center',
     textAlignVertical: 'center',
-    fontFamily: 'HelveticaNeue-Medium',
+    fontFamily: HelveticaNeueMedium,
     fontSize: 15,
   },
   btnAdd: {
@@ -490,57 +303,6 @@ const styles = StyleSheet.create({
     elevation: 3,
     overflow: 'hidden',
   },
-  viewBtnOption: {
-    flexDirection: 'row',
-    alignSelf: 'flex-end',
-    marginVertical: 15,
-  },
-  btnDelete: {
-    width: 35,
-    height: 35,
-    borderRadius: 35 / 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#9A4242',
-    elevation: 3,
-    overflow: 'hidden',
-  },
-  btnEdit: {
-    height: 35,
-    backgroundColor: '#164877',
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 15,
-    paddingRight: 20,
-    borderRadius: 35 / 2,
-    elevation: 3,
-    overflow: 'hidden',
-  },
-  textItemTitle: {
-    flex: 1,
-    textAlign: 'right',
-    color: 'white',
-    marginHorizontal: 20,
-    fontFamily: 'HelveticaNeue-Medium',
-    fontSize: 20,
-    marginVertical: 30,
-  },
-  btnDetail: {
-    width: 50,
-    height: 50,
-    overflow: 'hidden',
-    borderRadius: 50 / 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  viewItem: {
-    marginHorizontal: 30,
-    borderBottomWidth: 0.5,
-    borderBottomColor: 'white',
-    overflow: 'hidden',
-    marginBottom: 1,
-    paddingHorizontal: 5,
-  },
   viewLine: {
     width: '85%',
     height: 2,
@@ -550,21 +312,9 @@ const styles = StyleSheet.create({
     marginVertical: 30,
     marginBottom: 25,
   },
-  textUserName: {
-    color: 'white',
-    fontFamily: 'HelveticaNeue-Heavy',
-    fontSize: 20,
-  },
   textDefault: {
     color: 'white',
-    fontFamily: 'HelveticaNeue-Medium',
-  },
-  viewProfile: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 20 + StatusBar.currentHeight,
-    marginHorizontal: 30,
-    alignItems: 'center',
+    fontFamily: HelveticaNeueMedium,
   },
   container: {
     flex: 1,
