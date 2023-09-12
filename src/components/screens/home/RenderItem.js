@@ -3,7 +3,6 @@ import React from 'react';
 import CheckBox from '@react-native-community/checkbox';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Gap from '../Gap';
-import {HelveticaNeueMedium} from '../..';
 
 export default function RenderItem({
   item,
@@ -62,7 +61,7 @@ export default function RenderItem({
 const styles = StyleSheet.create({
   textDefault: {
     color: 'white',
-    fontFamily: HelveticaNeueMedium,
+    fontFamily: 'HelveticaNeue-Medium',
   },
   viewBtnOption: {
     flexDirection: 'row',
@@ -95,7 +94,7 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     color: 'white',
     marginHorizontal: 20,
-    fontFamily: HelveticaNeueMedium,
+    fontFamily: 'HelveticaNeue-Medium',
     fontSize: 20,
     marginVertical: 30,
   },

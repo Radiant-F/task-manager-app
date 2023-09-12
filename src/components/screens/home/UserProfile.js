@@ -1,8 +1,17 @@
-import {StyleSheet, Text, View, StatusBar, Image} from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  StatusBar,
+  Image,
+  TouchableNativeFeedback,
+  Alert,
+} from 'react-native';
 import React, {useEffect, useState} from 'react';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import EncryptedStorage from 'react-native-encrypted-storage';
 
-export default function UserProfile({token}) {
+export default function UserProfile({token, navigation}) {
   const [userData, setUserData] = useState({
     username: '',
     avatar: {
@@ -31,20 +40,40 @@ export default function UserProfile({token}) {
     getUser();
   }, []);
 
+  async function signOut() {
+    try {
+      await EncryptedStorage.removeItem('user_credential');
+      navigation.replace('SignIn');
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  function confirmSignOut() {
+    Alert.alert('Keluar?', 'Sesi Anda akan berakhir.', [
+      {text: 'Batal'},
+      {text: 'Keluar', onPress: () => signOut()},
+    ]);
+  }
+
   return (
-    <View style={styles.viewProfile}>
-      <View>
-        <Text style={styles.textDefault}>Hi,</Text>
-        <Text style={styles.textUserName}>
-          {userData.username == '' ? 'User Name' : userData.username}
-        </Text>
+    <TouchableNativeFeedback onPress={confirmSignOut}>
+      <View style={styles.viewProfile}>
+        <View>
+          <Text style={styles.textDefault}>Hi,</Text>
+          <Text style={styles.textUserName}>
+            {userData.username == '' ? 'User Name' : userData.username}
+          </Text>
+        </View>
+        {userData.avatar.url == '' ? (
+          <Icon name="account-circle" color="white" size={50} />
+        ) : (
+          <Image
+            source={{uri: userData.avatar.url}}
+            style={styles.imgProfile}
+          />
+        )}
       </View>
-      {userData.avatar.url == '' ? (
-        <Icon name="account-circle" color="white" size={50} />
-      ) : (
-        <Image source={{uri: userData.avatar.url}} style={styles.imgProfile} />
-      )}
-    </View>
+    </TouchableNativeFeedback>
   );
 }
 

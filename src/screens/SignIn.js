@@ -13,6 +13,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {Background, Gap} from '../components';
 import CheckBox from '@react-native-community/checkbox';
 import EncryptedStorage from 'react-native-encrypted-storage';
+import axios from 'axios';
 
 export default function SignIn({navigation}) {
   const [securePassword, setSecurePassword] = useState(true);
@@ -23,31 +24,26 @@ export default function SignIn({navigation}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  function submitSignIn() {
+  async function submitSignIn() {
     setLoading(true);
-    fetch('https://todoapi-production-61ef.up.railway.app/api/v1/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({email, password}),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then(response => response.json())
-      .then(json => {
-        setLoading(false);
-        if (json.status == 'success') {
-          rememberUser &&
-            EncryptedStorage.setItem(
-              'user_credential',
-              JSON.stringify({email, password}),
-            );
-          navigation.replace('Home', {data: json});
-        } else ToastAndroid.show(json.message, ToastAndroid.SHORT);
-      })
-      .catch(err => {
-        setLoading(false);
-        console.log(`Error: ${err}`);
-      });
+    try {
+      const response = await axios.post(
+        'https://todoapi-production-61ef.up.railway.app/api/v1/auth/login',
+        {email, password},
+        {headers: {'Content-Type': 'application/json'}},
+      );
+      setLoading(false);
+      rememberUser &&
+        EncryptedStorage.setItem(
+          'user_credential',
+          JSON.stringify({email, password}),
+        );
+      navigation.replace('Home', {data: response.data});
+    } catch (error) {
+      setLoading(false);
+      ToastAndroid.show(error.response.data.message, ToastAndroid.LONG);
+      console.log('ERROR:', error);
+    }
   }
 
   return (

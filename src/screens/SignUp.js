@@ -14,6 +14,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {Background, Gap} from '../components';
 import CheckBox from '@react-native-community/checkbox';
 import EncryptedStorage from 'react-native-encrypted-storage';
+import axios from 'axios';
 
 export default function SignUp({navigation}) {
   const [securePassword, setSecurePassword] = useState(true);
@@ -27,37 +28,47 @@ export default function SignUp({navigation}) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  function submitSignUp() {
-    setLoading(true);
-    fetch(
-      'https://todoapi-production-61ef.up.railway.app/api/v1/auth/register',
-      {
-        method: 'POST',
-        body: JSON.stringify({username, email, password, confirmPassword}),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      },
-    )
-      .then(response => response.json())
-      .then(json => {
-        setLoading(false);
-        if (json.status == 'success') {
-          rememberUser &&
-            EncryptedStorage.setItem(
-              'user_credential',
-              JSON.stringify({email, password}),
-            );
-          navigation.reset({
-            index: 0,
-            routes: [{name: 'Home', params: {data: json}}],
-          });
-        } else ToastAndroid.show(json.message, ToastAndroid.SHORT);
-      })
-      .catch(err => {
-        setLoading(false);
-        console.log(err);
-      });
+  async function submitSignUp() {
+    try {
+      const response = await axios.post(
+        'https://todoapi-production-61ef.up.railway.app/api/v1/auth/register',
+        {username, email, password, confirmPassword},
+        {headers: {'Content-Type': 'application/json'}},
+      );
+      console.log(response);
+    } catch (error) {
+      console.log(error);
+    }
+    // setLoading(true);
+    // fetch(
+    //   'https://todoapi-production-61ef.up.railway.app/api/v1/auth/register',
+    //   {
+    //     method: 'POST',
+    //     body: JSON.stringify({username, email, password, confirmPassword}),
+    //     headers: {
+    //       'Content-Type': 'application/json',
+    //     },
+    //   },
+    // )
+    //   .then(response => response.json())
+    //   .then(json => {
+    //     setLoading(false);
+    //     if (json.status == 'success') {
+    //       rememberUser &&
+    //         EncryptedStorage.setItem(
+    //           'user_credential',
+    //           JSON.stringify({email, password}),
+    //         );
+    //       navigation.reset({
+    //         index: 0,
+    //         routes: [{name: 'Home', params: {data: json}}],
+    //       });
+    //     } else ToastAndroid.show(json.message, ToastAndroid.SHORT);
+    //   })
+    //   .catch(err => {
+    //     setLoading(false);
+    //     console.log(err);
+    //   });
   }
 
   return (

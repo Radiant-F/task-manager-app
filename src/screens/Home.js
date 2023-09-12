@@ -21,6 +21,7 @@ import {
   HelveticaNeueMedium,
 } from '../components';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import axios from 'axios';
 
 if (Platform.OS === 'android') {
   if (UIManager.setLayoutAnimationEnabledExperimental) {
@@ -28,33 +29,31 @@ if (Platform.OS === 'android') {
   }
 }
 
-export default function Home({route}) {
+export default function Home({route, navigation}) {
   const token = route.params.data.user.token;
-  const host = 'https://todoapi-production-61ef.up.railway.app/api/v1';
   const [openDetail, setOpenDetail] = useState(null);
 
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  function getTasks() {
+  const instance = axios.create({
+    baseURL: 'https://todoapi-production-61ef.up.railway.app/api/v1',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  async function getTasks() {
     setLoading(true);
-    fetch(`${host}/todos`, {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then(response => response.json())
-      .then(json => {
-        setLoading(false);
-        if (json.status == 'success') {
-          setTasks(json.data.todos);
-        } else console.log(json);
-      })
-      .catch(err => {
-        setLoading(false);
-        console.log(err);
-      });
+    try {
+      const {data} = await instance.get('/todos');
+      setTasks(data.data.todos);
+      setLoading(false);
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
+    }
   }
   useEffect(() => {
     getTasks();
@@ -66,28 +65,18 @@ export default function Home({route}) {
   const [title, setTitle] = useState('');
   const [desc, setDesc] = useState('');
 
-  function addTask() {
+  async function addTask() {
     setLoadingAdd(true);
-    fetch(`${host}/todos`, {
-      method: 'POST',
-      body: JSON.stringify({title, desc}),
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then(response => response.json())
-      .then(json => {
-        setLoadingAdd(false);
-        if (json.status == 'success') {
-          getTasks();
-          setModalAddVisible(false);
-        } else ToastAndroid.show(json.message, ToastAndroid.SHORT);
-      })
-      .catch(err => {
-        setLoadingAdd(false);
-        console.log(err);
-      });
+    try {
+      const {data} = await instance.post('/todos', {title, desc});
+      console.log(data);
+      setLoadingAdd(false);
+      getTasks();
+      setModalAddVisible(false);
+    } catch (error) {
+      console.log(error);
+      setLoadingAdd(false);
+    }
   }
 
   const [modalEditVisible, setModalEditVisible] = useState(false);
@@ -100,52 +89,29 @@ export default function Home({route}) {
     _id: null,
   });
 
-  function editTask() {
+  async function editTask() {
     setLoadingEdit(true);
-    fetch(`${host}/todos/${editedTask._id}`, {
-      method: 'PUT',
-      body: JSON.stringify(editedTask),
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then(response => response.json())
-      .then(json => {
-        setLoadingEdit(false);
-        if (json.status == 'success') {
-          getTasks();
-          setModalEditVisible(false);
-        } else console.log(json);
-      })
-      .catch(err => {
-        setLoadingEdit(false);
-        console.log(err);
-      });
+    try {
+      await instance.put(`/todos/${editedTask._id}`, editedTask);
+      getTasks();
+      setModalEditVisible(false);
+      setLoadingEdit(false);
+    } catch (error) {
+      console.log(error);
+      setLoadingEdit(false);
+    }
   }
 
-  function deleteTask(id) {
+  async function deleteTask(id) {
     setLoading(true);
-    fetch(`${host}/todos/${id}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then(response => response.json())
-      .then(json => {
-        if (json.status == 'success') {
-          getTasks();
-        } else {
-          setLoading(false);
-          console.log(json);
-        }
-      })
-      .catch(err => {
-        setLoading(false);
-        console.log(err);
-      });
+    try {
+      await instance.delete(`/todos/${id}`);
+      setLoading(false);
+      getTasks();
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
+    }
   }
   function confirmDelete(id) {
     Alert.alert(
@@ -164,31 +130,18 @@ export default function Home({route}) {
     );
   }
 
-  function checklistTask(task) {
+  async function checklistTask(task) {
     setLoading(true);
-    fetch(`${host}/todos/${task._id}`, {
-      method: 'PUT',
-      body: JSON.stringify({
+    try {
+      await instance.put(`/todos/${task._id}`, {
         checked: !task.checked,
-      }),
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then(response => response.json())
-      .then(json => {
-        if (json.status == 'success') {
-          getTasks();
-        } else {
-          setLoading(false);
-          console.log(json);
-        }
-      })
-      .catch(err => {
-        setLoading(false);
-        console.log(err);
       });
+      getTasks();
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      console.log(error);
+    }
   }
 
   return (
@@ -197,7 +150,7 @@ export default function Home({route}) {
 
       <View style={styles.viewContainer}>
         {/* user profile */}
-        <UserProfile token={token} />
+        <UserProfile token={token} navigation={navigation} />
 
         <View style={styles.viewLine} />
 

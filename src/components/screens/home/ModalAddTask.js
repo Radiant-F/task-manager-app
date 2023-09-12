@@ -11,8 +11,6 @@ import {
 } from 'react-native';
 import React from 'react';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import Gap from '../Gap';
-import {HelveticaNeueMedium} from '../..';
 
 export default function ModalAddTask({
   visible,
@@ -45,12 +43,12 @@ export default function ModalAddTask({
               <Icon name={'gmail'} color={'black'} size={23} />
               <TextInput
                 placeholder="Judul tugas..."
-                style={{flex: 1, fontFamily: HelveticaNeueMedium}}
+                style={{flex: 1, fontFamily: 'HelveticaNeue-Medium'}}
                 onChangeText={onChangeTitle}
               />
             </View>
 
-            <Gap height={15} />
+            <View style={{height: 15}} />
 
             {/* input task desc */}
             <Text style={styles.textInputTitle}>Deskripsi</Text>
@@ -58,12 +56,12 @@ export default function ModalAddTask({
               <Icon name={'lock'} color={'black'} size={23} />
               <TextInput
                 placeholder="Deskripsi tugas.."
-                style={{flex: 1, fontFamily: HelveticaNeueMedium}}
+                style={{flex: 1, fontFamily: 'HelveticaNeue-Medium'}}
                 onChangeText={onChangeDesc}
               />
             </View>
 
-            <Gap height={30} />
+            <View style={{height: 30}} />
 
             {/* button submit */}
             <TouchableNativeFeedback useForeground onPress={onPressSubmit}>
@@ -87,12 +85,12 @@ const styles = StyleSheet.create({
     color: 'white',
     textAlign: 'center',
     textAlignVertical: 'center',
-    fontFamily: HelveticaNeueMedium,
+    fontFamily: 'HelveticaNeue-Medium',
     fontSize: 15,
   },
   textDefault: {
     color: 'white',
-    fontFamily: HelveticaNeueMedium,
+    fontFamily: 'HelveticaNeue-Medium',
   },
   btnSubmitAdd: {
     height: 45,
@@ -111,7 +109,7 @@ const styles = StyleSheet.create({
   },
   textInputTitle: {
     color: 'white',
-    fontFamily: HelveticaNeueMedium,
+    fontFamily: 'HelveticaNeue-Medium',
     marginBottom: 5,
   },
   viewInput: {
