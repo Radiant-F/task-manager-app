@@ -11,10 +11,11 @@ export default function Navigator() {
     <NavigationContainer onReady={() => RNBootSplash.hide({fade: true})}>
       <Stack.Navigator
         screenOptions={{
-          headerShown: false,
           statusBarColor: 'transparent',
           statusBarTranslucent: true,
-        }}>
+          headerShown: false,
+        }}
+        initialRouteName="SignIn">
         <Stack.Screen component={SplashScreen} name="SplashScreen" />
         <Stack.Screen component={SignIn} name="SignIn" />
         <Stack.Screen component={SignUp} name="SignUp" />

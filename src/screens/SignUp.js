@@ -6,21 +6,16 @@ import {
   TouchableOpacity,
   TouchableNativeFeedback,
   ScrollView,
-  ActivityIndicator,
-  ToastAndroid,
 } from 'react-native';
 import React, {useState} from 'react';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {Background, Gap} from '../components';
 import CheckBox from '@react-native-community/checkbox';
-import EncryptedStorage from 'react-native-encrypted-storage';
-import axios from 'axios';
 
 export default function SignUp({navigation}) {
   const [securePassword, setSecurePassword] = useState(true);
   const [secureConfirmPassword, setSecureConfirmPassword] = useState(true);
   const [rememberUser, setRememberUser] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   // form data
   const [username, setUsername] = useState('');
@@ -28,47 +23,12 @@ export default function SignUp({navigation}) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  async function submitSignUp() {
-    try {
-      const response = await axios.post(
-        'https://todoapi-production-61ef.up.railway.app/api/v1/auth/register',
-        {username, email, password, confirmPassword},
-        {headers: {'Content-Type': 'application/json'}},
-      );
-      console.log(response);
-    } catch (error) {
-      console.log(error);
-    }
-    // setLoading(true);
-    // fetch(
-    //   'https://todoapi-production-61ef.up.railway.app/api/v1/auth/register',
-    //   {
-    //     method: 'POST',
-    //     body: JSON.stringify({username, email, password, confirmPassword}),
-    //     headers: {
-    //       'Content-Type': 'application/json',
-    //     },
-    //   },
-    // )
-    //   .then(response => response.json())
-    //   .then(json => {
-    //     setLoading(false);
-    //     if (json.status == 'success') {
-    //       rememberUser &&
-    //         EncryptedStorage.setItem(
-    //           'user_credential',
-    //           JSON.stringify({email, password}),
-    //         );
-    //       navigation.reset({
-    //         index: 0,
-    //         routes: [{name: 'Home', params: {data: json}}],
-    //       });
-    //     } else ToastAndroid.show(json.message, ToastAndroid.SHORT);
-    //   })
-    //   .catch(err => {
-    //     setLoading(false);
-    //     console.log(err);
-    //   });
+  function submitSignUp() {
+    console.log({username, email, password, confirmPassword});
+    navigation.reset({
+      index: 0,
+      routes: [{name: 'Home'}],
+    });
   }
 
   return (
@@ -88,8 +48,8 @@ export default function SignUp({navigation}) {
                 <Icon name={'account'} color={'black'} size={23} />
                 <TextInput
                   placeholder="Masukan Nama..."
-                  keyboardType="email-address"
-                  autoCapitalize="none"
+                  placeholderTextColor={'grey'}
+                  autoCapitalize="words"
                   style={styles.input}
                   onChangeText={setUsername}
                 />
@@ -103,6 +63,7 @@ export default function SignUp({navigation}) {
                 <Icon name={'gmail'} color={'black'} size={23} />
                 <TextInput
                   placeholder="contoh@email.com"
+                  placeholderTextColor={'grey'}
                   keyboardType="email-address"
                   autoCapitalize="none"
                   style={styles.input}
@@ -118,6 +79,7 @@ export default function SignUp({navigation}) {
                 <Icon name={'lock'} color={'black'} size={23} />
                 <TextInput
                   placeholder="Kata sandi.."
+                  placeholderTextColor={'grey'}
                   style={styles.input}
                   secureTextEntry={securePassword}
                   autoCapitalize="none"
@@ -135,12 +97,13 @@ export default function SignUp({navigation}) {
 
               <Gap height={20} />
 
-              {/* input password */}
+              {/* input confirm password */}
               <Text style={styles.textInputTitle}>Confirm Password</Text>
               <View style={styles.viewInput}>
                 <Icon name={'lock'} color={'black'} size={23} />
                 <TextInput
                   placeholder="Konfirmasi sandi.."
+                  placeholderTextColor={'grey'}
                   style={styles.input}
                   secureTextEntry={secureConfirmPassword}
                   autoCapitalize="none"
@@ -177,11 +140,7 @@ export default function SignUp({navigation}) {
               {/* submit & register button */}
               <TouchableNativeFeedback useForeground onPress={submitSignUp}>
                 <View style={styles.btnSubmit}>
-                  {loading ? (
-                    <ActivityIndicator color={'white'} />
-                  ) : (
-                    <Text style={styles.textBtnTitle}>Daftar</Text>
-                  )}
+                  <Text style={styles.textBtnTitle}>Daftar</Text>
                 </View>
               </TouchableNativeFeedback>
               <Gap height={10} />
