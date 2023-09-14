@@ -24,34 +24,6 @@ export default function SplashScreen({navigation}) {
 
   useEffect(() => {
     refreshToken();
-    // EncryptedStorage.getItem('user_credential', value => {
-    //   const credential = JSON.parse(value);
-    //   if (credential) {
-    //     fetch(
-    //       'https://todoapi-production-61ef.up.railway.app/api/v1/auth/login',
-    //       {
-    //         method: 'POST',
-    //         body: JSON.stringify(credential),
-    //         headers: {
-    //           'Content-Type': 'application/json',
-    //         },
-    //       },
-    //     )
-    //       .then(response => response.json())
-    //       .then(json => {
-    //         if (json.status == 'success') {
-    //           navigation.replace('Home', {data: json});
-    //         } else navigation.replace('SignIn');
-    //       })
-    //       .catch(err => {
-    //         console.log(err);
-    //         navigation.replace('SignIn');
-    //       });
-    //   } else
-    //     setTimeout(() => {
-    //       navigation.replace('SignIn');
-    //     }, 3000);
-    // });
   }, []);
 
   return (
