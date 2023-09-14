@@ -22,6 +22,7 @@ import {
 } from '../components';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import axios from 'axios';
+import EncryptedStorage from 'react-native-encrypted-storage';
 
 if (Platform.OS === 'android') {
   if (UIManager.setLayoutAnimationEnabledExperimental) {
@@ -44,6 +45,32 @@ export default function Home({route, navigation}) {
     },
   });
 
+  instance.interceptors.response.use(
+    response => {
+      return response;
+    },
+    async error => {
+      const originalRequest = error.config;
+      if (
+        error.response &&
+        error.response.status === 500 &&
+        error.response.data.message === 'jwt expired'
+      ) {
+        try {
+          const value = await EncryptedStorage.getItem('user_credential');
+          const {data} = await instance.post('/auth/login', JSON.parse(value));
+          originalRequest.headers[
+            'Authorization'
+          ] = `Bearer ${data.user.token}`;
+          return instance(originalRequest);
+        } catch (error) {
+          return Promise.reject(error);
+        }
+      }
+      return Promise.reject(error);
+    },
+  );
+
   async function getTasks() {
     setLoading(true);
     try {
@@ -51,7 +78,7 @@ export default function Home({route, navigation}) {
       setTasks(data.data.todos);
       setLoading(false);
     } catch (error) {
-      console.log(error);
+      console.log('Error:', error.response.data);
       setLoading(false);
     }
   }
@@ -74,7 +101,8 @@ export default function Home({route, navigation}) {
       getTasks();
       setModalAddVisible(false);
     } catch (error) {
-      console.log(error);
+      console.log(error.response.data);
+      ToastAndroid.show(error.response.data.message, ToastAndroid.LONG);
       setLoadingAdd(false);
     }
   }
