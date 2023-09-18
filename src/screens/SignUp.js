@@ -15,8 +15,11 @@ import {Background, Gap} from '../components';
 import CheckBox from '@react-native-community/checkbox';
 import EncryptedStorage from 'react-native-encrypted-storage';
 import axios from 'axios';
+import {setToken, SetUsername} from '../redux/slice/userSlice';
+import {useDispatch} from 'react-redux';
 
 export default function SignUp({navigation}) {
+  const dispatch = useDispatch();
   const [securePassword, setSecurePassword] = useState(true);
   const [secureConfirmPassword, setSecureConfirmPassword] = useState(true);
   const [rememberUser, setRememberUser] = useState(false);
@@ -28,47 +31,44 @@ export default function SignUp({navigation}) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
+  const instance = token =>
+    axios.create({
+      baseURL: 'https://todoapi-production-61ef.up.railway.app/api/v1',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
   async function submitSignUp() {
+    setLoading(true);
     try {
-      const response = await axios.post(
-        'https://todoapi-production-61ef.up.railway.app/api/v1/auth/register',
-        {username, email, password, confirmPassword},
-        {headers: {'Content-Type': 'application/json'}},
+      const resSignUp = await instance().post('/auth/register', {
+        username,
+        email,
+        password,
+        confirmPassword,
+      });
+      dispatch(setToken(resSignUp.data.user.token));
+      const resUserData = await instance(resSignUp.data.user.token).get(
+        '/profile',
       );
-      console.log(response);
+      dispatch(SetUsername(resUserData.data.user.username));
+      setLoading(false);
+      rememberUser &&
+        EncryptedStorage.setItem(
+          'user_credential',
+          JSON.stringify({email, password}),
+        );
+      navigation.reset({
+        index: 0,
+        routes: [{name: 'Home'}],
+      });
     } catch (error) {
-      console.log(error);
+      setLoading(false);
+      console.log(error.response.data);
+      ToastAndroid.show(error.response.data.message, ToastAndroid.LONG);
     }
-    // setLoading(true);
-    // fetch(
-    //   'https://todoapi-production-61ef.up.railway.app/api/v1/auth/register',
-    //   {
-    //     method: 'POST',
-    //     body: JSON.stringify({username, email, password, confirmPassword}),
-    //     headers: {
-    //       'Content-Type': 'application/json',
-    //     },
-    //   },
-    // )
-    //   .then(response => response.json())
-    //   .then(json => {
-    //     setLoading(false);
-    //     if (json.status == 'success') {
-    //       rememberUser &&
-    //         EncryptedStorage.setItem(
-    //           'user_credential',
-    //           JSON.stringify({email, password}),
-    //         );
-    //       navigation.reset({
-    //         index: 0,
-    //         routes: [{name: 'Home', params: {data: json}}],
-    //       });
-    //     } else ToastAndroid.show(json.message, ToastAndroid.SHORT);
-    //   })
-    //   .catch(err => {
-    //     setLoading(false);
-    //     console.log(err);
-    //   });
   }
 
   return (

@@ -14,8 +14,11 @@ import {Background, Gap} from '../components';
 import CheckBox from '@react-native-community/checkbox';
 import EncryptedStorage from 'react-native-encrypted-storage';
 import axios from 'axios';
+import {useDispatch} from 'react-redux';
+import {setToken, setUsername} from '../redux/slice/userSlice';
 
 export default function SignIn({navigation}) {
+  const dispatch = useDispatch();
   const [securePassword, setSecurePassword] = useState(true);
   const [rememberUser, setRememberUser] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -24,21 +27,31 @@ export default function SignIn({navigation}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  const instance = token =>
+    axios.create({
+      baseURL: 'https://todoapi-production-61ef.up.railway.app/api/v1',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
   async function submitSignIn() {
     setLoading(true);
     try {
-      const response = await axios.post(
-        'https://todoapi-production-61ef.up.railway.app/api/v1/auth/login',
-        {email, password},
-        {headers: {'Content-Type': 'application/json'}},
+      const resLogin = await instance().post('/auth/login', {email, password});
+      dispatch(setToken(resLogin.data.user.token));
+      const resProfile = await instance(resLogin.data.user.token).get(
+        '/profile',
       );
+      dispatch(setUsername(resProfile.data.user.username));
       setLoading(false);
       rememberUser &&
         EncryptedStorage.setItem(
           'user_credential',
           JSON.stringify({email, password}),
         );
-      navigation.replace('Home', {data: response.data});
+      navigation.replace('Home');
     } catch (error) {
       setLoading(false);
       ToastAndroid.show(error.response.data.message, ToastAndroid.LONG);
