@@ -4,25 +4,24 @@ const counterSlice = createSlice({
   name: 'counterSlice',
   initialState: {
     count: 0,
-    age: 0,
   },
   reducers: {
-    incrementCount(state) {
+    increment(state) {
       state.count += 1;
     },
-    decrementCount(state) {
+    decrement(state) {
       state.count -= 1;
     },
-    addCountBy(state, {payload}) {
-      state.count = state.count + payload;
+    incrementBy(state, action) {
+      state.count = state.count + action.payload;
     },
-    minusCountBy(state, {payload}) {
-      state.count = state.count - payload;
+    decrementBy(state, action) {
+      state.count = state.count - action.payload;
     },
   },
 });
 
-export const {incrementCount, decrementCount, addCountBy, minusCountBy} =
+export const {decrement, increment, incrementBy, decrementBy} =
   counterSlice.actions;
 
 export default counterSlice.reducer;
