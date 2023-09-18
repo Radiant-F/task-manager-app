@@ -7,38 +7,13 @@ import {
   TouchableNativeFeedback,
   Alert,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import EncryptedStorage from 'react-native-encrypted-storage';
-import axios from 'axios';
+import {useSelector} from 'react-redux';
 
-export default function UserProfile({token, navigation}) {
-  const [userData, setUserData] = useState({
-    username: 'Pengguna',
-    avatar: {
-      url: '',
-    },
-  });
-
-  async function getUser() {
-    try {
-      const {data} = await axios.get(
-        'https://todoapi-production-61ef.up.railway.app/api/v1/profile',
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-      setUserData({...userData, ...data.user});
-    } catch (error) {
-      console.log(error);
-    }
-  }
-  useEffect(() => {
-    getUser();
-  }, []);
+export default function UserProfile({navigation}) {
+  const userData = useSelector(state => state.user);
 
   async function signOut() {
     try {
@@ -60,18 +35,17 @@ export default function UserProfile({token, navigation}) {
       <View style={styles.viewProfile}>
         <View>
           <Text style={styles.textDefault}>Hi,</Text>
-          <Text style={styles.textUserName}>
-            {userData.username == '' ? 'User Name' : userData.username}
-          </Text>
+          <Text style={styles.textUserName}>{userData.username}</Text>
         </View>
-        {userData.avatar.url == '' ? (
+        <Icon name="account-circle" color="white" size={50} />
+        {/* {userData.avatar.url == '' ? (
           <Icon name="account-circle" color="white" size={50} />
         ) : (
           <Image
             source={{uri: userData.avatar.url}}
             style={styles.imgProfile}
           />
-        )}
+        )} */}
       </View>
     </TouchableNativeFeedback>
   );
