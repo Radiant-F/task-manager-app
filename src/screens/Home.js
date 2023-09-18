@@ -23,6 +23,7 @@ import {
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import axios from 'axios';
 import EncryptedStorage from 'react-native-encrypted-storage';
+import {useSelector} from 'react-redux';
 
 if (Platform.OS === 'android') {
   if (UIManager.setLayoutAnimationEnabledExperimental) {
@@ -30,8 +31,8 @@ if (Platform.OS === 'android') {
   }
 }
 
-export default function Home({route, navigation}) {
-  const token = route.params.data.user.token;
+export default function Home({navigation}) {
+  const {token} = useSelector(state => state.user);
   const [openDetail, setOpenDetail] = useState(null);
 
   const [tasks, setTasks] = useState([]);
