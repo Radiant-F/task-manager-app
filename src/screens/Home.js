@@ -13,6 +13,7 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import {Background, Gap, UserProfile} from '../components';
@@ -25,21 +26,68 @@ if (Platform.OS === 'android') {
   }
 }
 
-export default function Home() {
+export default function Home({route}) {
+  const token = route.params.token;
   const [openDetail, setOpenDetail] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  const [tasks, setTasks] = useState([]);
+
+  function getTasks() {
+    fetch('https://todoapi-production-61ef.up.railway.app/api/v1/todos', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then(response => response.json())
+      .then(json => {
+        if (json.status == 'success') {
+          setTasks(json.data.todos);
+        }
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  }
+  useEffect(() => {
+    getTasks();
+  }, []);
+
   const [modalAddVisible, setModalAddVisible] = useState(false);
   const closeModal = () => setModalAddVisible(false);
+  const [loadingAdd, setLoadingAdd] = useState(false);
   const [title, setTitle] = useState('');
   const [desc, setDesc] = useState('');
 
   function addTask() {
-    console.log({title, desc});
+    setLoadingAdd(true);
+    fetch('https://todoapi-production-61ef.up.railway.app/api/v1/todos', {
+      method: 'POST',
+      body: JSON.stringify({title, desc}),
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then(response => response.json())
+      .then(json => {
+        setLoadingAdd(false);
+        if (json.status == 'success') {
+          getTasks();
+          setModalAddVisible(false);
+        } else console.log(json);
+      })
+      .catch(error => {
+        setLoadingAdd(false);
+        console.log(error);
+      });
   }
 
   const [modalEditVisible, setModalEditVisible] = useState(false);
   const closeModalEdit = () => setModalEditVisible(false);
+  const [loadingEdit, setLoadingEdit] = useState(false);
   const [editedTask, setEditedTask] = useState({
     title: '',
     desc: '',
@@ -48,10 +96,95 @@ export default function Home() {
   });
 
   function editTask() {
-    console.log(editedTask);
-    setModalEditVisible(false);
+    setLoadingEdit(true);
+    fetch(
+      `https://todoapi-production-61ef.up.railway.app/api/v1/todos/${editedTask._id}`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(editedTask),
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    )
+      .then(response => response.json())
+      .then(json => {
+        setLoadingEdit(false);
+        if (json.status == 'success') {
+          getTasks();
+          setModalEditVisible(false);
+        } else console.log(json);
+      })
+      .catch(error => {
+        setLoadingEdit(false);
+        console.log(error);
+      });
   }
 
+  function deleteTask(id) {
+    setLoading(true);
+    fetch(`https://todoapi-production-61ef.up.railway.app/api/v1/todos/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then(response => response.json())
+      .then(json => {
+        setLoading(false);
+        if (json.status == 'success') {
+          getTasks();
+        } else console.log(json);
+      })
+      .catch(error => {
+        setLoading(false);
+        console.log(error);
+      });
+  }
+
+  function confirmDelete(id) {
+    Alert.alert(
+      'Hapus Tugas',
+      'Hapus tugas? tindakan ini tidak dapat diulangi',
+      [
+        {
+          text: 'Hapus',
+          onPress: () => deleteTask(id),
+        },
+        {
+          text: 'Batal',
+        },
+      ],
+    );
+  }
+
+  function checklistTask(task) {
+    setLoading(true);
+    fetch(
+      `https://todoapi-production-61ef.up.railway.app/api/v1/todos/${task._id}`,
+      {
+        method: 'PUT',
+        body: JSON.stringify({checked: !task.checked}),
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    )
+      .then(response => response.json())
+      .then(json => {
+        setLoading(false);
+        if (json.status == 'success') {
+          getTasks();
+        } else console.log(json);
+      })
+      .catch(error => {
+        setLoading(false);
+        console.log(error);
+      });
+  }
   return (
     <View style={styles.container}>
       <Background />
@@ -68,10 +201,13 @@ export default function Home() {
 
       {/* view data */}
       <FlatList
-        data={[]}
+        data={tasks}
+        ListEmptyComponent={
+          <Text style={styles.textEmpty}>Tidak ada tugas</Text>
+        }
         keyExtractor={(item, index) => index}
         refreshing={loading}
-        onRefresh={null}
+        onRefresh={() => getTasks()}
         ListFooterComponent={<Gap height={20} />}
         renderItem={({item, index}) => {
           const handleOpenDetail = () => {
@@ -85,6 +221,7 @@ export default function Home() {
                 <CheckBox
                   value={item.checked}
                   tintColors={{true: 'white', false: 'white'}}
+                  onValueChange={() => checklistTask(item)}
                 />
                 <Text style={styles.textItemTitle}>{item.title}</Text>
                 <TouchableNativeFeedback
@@ -105,7 +242,9 @@ export default function Home() {
                   <Text style={styles.textDefault}>{item.desc}</Text>
                   <View style={styles.viewBtnOption}>
                     {/* button delete */}
-                    <TouchableNativeFeedback useForeground>
+                    <TouchableNativeFeedback
+                      useForeground
+                      onPress={() => confirmDelete(item._id)}>
                       <View style={styles.btnDelete}>
                         <Icon name="trash-can" color={'white'} size={20} />
                       </View>
@@ -173,6 +312,7 @@ export default function Home() {
                   placeholder="Judul tugas..."
                   placeholderTextColor={'grey'}
                   style={styles.input}
+                  onChangeText={setTitle}
                 />
               </View>
 
@@ -186,6 +326,7 @@ export default function Home() {
                   placeholder="Deskripsi tugas.."
                   placeholderTextColor={'grey'}
                   style={styles.input}
+                  onChangeText={setDesc}
                 />
               </View>
 
@@ -194,7 +335,11 @@ export default function Home() {
               {/* button submit */}
               <TouchableNativeFeedback useForeground onPress={addTask}>
                 <View style={styles.btnSubmitAdd}>
-                  <Text style={styles.textBtnTitle}>Buat</Text>
+                  {loadingAdd ? (
+                    <ActivityIndicator color={'white'} />
+                  ) : (
+                    <Text style={styles.textBtnTitle}>Buat</Text>
+                  )}
                 </View>
               </TouchableNativeFeedback>
             </View>
@@ -227,6 +372,8 @@ export default function Home() {
                   placeholder="Judul tugas..."
                   placeholderTextColor={'grey'}
                   style={styles.input}
+                  onChangeText={title => setEditedTask({...editedTask, title})}
+                  value={editedTask.title}
                 />
               </View>
 
@@ -240,6 +387,8 @@ export default function Home() {
                   placeholder="Deskripsi tugas.."
                   placeholderTextColor={'grey'}
                   style={styles.input}
+                  onChangeText={desc => setEditedTask({...editedTask, desc})}
+                  value={editedTask.desc}
                 />
               </View>
 
@@ -248,7 +397,11 @@ export default function Home() {
               {/* button submit */}
               <TouchableNativeFeedback useForeground onPress={editTask}>
                 <View style={styles.btnSubmitAdd}>
-                  <Text style={styles.textBtnTitle}>Ubah</Text>
+                  {loadingEdit ? (
+                    <ActivityIndicator color={'white'} />
+                  ) : (
+                    <Text style={styles.textBtnTitle}>Ubah</Text>
+                  )}
                 </View>
               </TouchableNativeFeedback>
             </View>
