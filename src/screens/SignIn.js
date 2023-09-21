@@ -14,18 +14,16 @@ import {Background, Gap} from '../components';
 import CheckBox from '@react-native-community/checkbox';
 import EncryptedStorage from 'react-native-encrypted-storage';
 import axios from 'axios';
-import {useDispatch} from 'react-redux';
-import {setToken, setUsername} from '../redux/slice/userSlice';
+import {useDispatch, useSelector} from 'react-redux';
+import {setToken, SetUsername} from '../redux/slice/userSlice';
+import {SetLoading, SetEmail, SetPassword} from '../redux/slice/signInSlice';
 
 export default function SignIn({navigation}) {
   const dispatch = useDispatch();
+  const {email, loading, password} = useSelector(state => state.sign_in);
+
   const [securePassword, setSecurePassword] = useState(true);
   const [rememberUser, setRememberUser] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  // form data
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
 
   const instance = token =>
     axios.create({
@@ -37,15 +35,15 @@ export default function SignIn({navigation}) {
     });
 
   async function submitSignIn() {
-    setLoading(true);
+    dispatch(SetLoading());
     try {
       const resLogin = await instance().post('/auth/login', {email, password});
       dispatch(setToken(resLogin.data.user.token));
       const resProfile = await instance(resLogin.data.user.token).get(
         '/profile',
       );
-      dispatch(setUsername(resProfile.data.user.username));
-      setLoading(false);
+      dispatch(SetUsername(resProfile.data.user.username));
+      dispatch(SetLoading());
       rememberUser &&
         EncryptedStorage.setItem(
           'user_credential',
@@ -53,7 +51,7 @@ export default function SignIn({navigation}) {
         );
       navigation.replace('Home');
     } catch (error) {
-      setLoading(false);
+      dispatch(SetLoading());
       ToastAndroid.show(error.response.data.message, ToastAndroid.LONG);
       console.log('ERROR:', error);
     }
@@ -78,7 +76,7 @@ export default function SignIn({navigation}) {
               keyboardType="email-address"
               autoCapitalize="none"
               style={styles.input}
-              onChangeText={setEmail}
+              onChangeText={email => dispatch(SetEmail(email))}
             />
           </View>
 
@@ -93,7 +91,7 @@ export default function SignIn({navigation}) {
               style={styles.input}
               secureTextEntry={securePassword}
               autoCapitalize="none"
-              onChangeText={setPassword}
+              onChangeText={password => dispatch(SetPassword(password))}
             />
             <TouchableOpacity
               onPress={() => setSecurePassword(!securePassword)}>

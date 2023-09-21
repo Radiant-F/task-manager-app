@@ -16,20 +16,20 @@ import CheckBox from '@react-native-community/checkbox';
 import EncryptedStorage from 'react-native-encrypted-storage';
 import axios from 'axios';
 import {setToken, SetUsername} from '../redux/slice/userSlice';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
+import {SetLoading, SetFormData} from '../redux/slice/signUpSlice';
 
 export default function SignUp({navigation}) {
   const dispatch = useDispatch();
+  const {loading, form_data} = useSelector(state => state.sign_up);
+
   const [securePassword, setSecurePassword] = useState(true);
   const [secureConfirmPassword, setSecureConfirmPassword] = useState(true);
   const [rememberUser, setRememberUser] = useState(false);
-  const [loading, setLoading] = useState(false);
 
-  // form data
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  function setForm(formName, value) {
+    return dispatch(SetFormData({formName, value}));
+  }
 
   const instance = token =>
     axios.create({
@@ -41,20 +41,15 @@ export default function SignUp({navigation}) {
     });
 
   async function submitSignUp() {
-    setLoading(true);
+    dispatch(SetLoading());
     try {
-      const resSignUp = await instance().post('/auth/register', {
-        username,
-        email,
-        password,
-        confirmPassword,
-      });
+      const resSignUp = await instance().post('/auth/register', form_data);
       dispatch(setToken(resSignUp.data.user.token));
       const resUserData = await instance(resSignUp.data.user.token).get(
         '/profile',
       );
       dispatch(SetUsername(resUserData.data.user.username));
-      setLoading(false);
+      dispatch(SetLoading());
       rememberUser &&
         EncryptedStorage.setItem(
           'user_credential',
@@ -65,9 +60,11 @@ export default function SignUp({navigation}) {
         routes: [{name: 'Home'}],
       });
     } catch (error) {
-      setLoading(false);
-      console.log(error.response.data);
-      ToastAndroid.show(error.response.data.message, ToastAndroid.LONG);
+      dispatch(SetLoading());
+      if (error.response) {
+        console.log(error.response.data);
+        ToastAndroid.show(error.response.data.message, ToastAndroid.LONG);
+      } else console.log(error);
     }
   }
 
@@ -91,7 +88,7 @@ export default function SignUp({navigation}) {
                   keyboardType="email-address"
                   autoCapitalize="none"
                   style={styles.input}
-                  onChangeText={setUsername}
+                  onChangeText={value => setForm('username', value)}
                 />
               </View>
 
@@ -106,7 +103,7 @@ export default function SignUp({navigation}) {
                   keyboardType="email-address"
                   autoCapitalize="none"
                   style={styles.input}
-                  onChangeText={setEmail}
+                  onChangeText={value => setForm('email', value)}
                 />
               </View>
 
@@ -121,7 +118,7 @@ export default function SignUp({navigation}) {
                   style={styles.input}
                   secureTextEntry={securePassword}
                   autoCapitalize="none"
-                  onChangeText={setPassword}
+                  onChangeText={value => setForm('password', value)}
                 />
                 <TouchableOpacity
                   onPress={() => setSecurePassword(!securePassword)}>
@@ -144,7 +141,7 @@ export default function SignUp({navigation}) {
                   style={styles.input}
                   secureTextEntry={secureConfirmPassword}
                   autoCapitalize="none"
-                  onChangeText={setConfirmPassword}
+                  onChangeText={value => setForm('confirmPassword', value)}
                 />
                 <TouchableOpacity
                   onPress={() =>
