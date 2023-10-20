@@ -4,13 +4,13 @@ import CheckBox from '@react-native-community/checkbox';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Gap from '../Gap';
 
-export default function RenderItem({
+export default function RenderTask({
+  onCheck,
   item,
-  onCheckBox,
-  onPressDetail,
+  openDetail,
   open,
-  onPressEdit,
   onPressDelete,
+  onPressEdit,
 }) {
   return (
     <View style={styles.viewItem}>
@@ -18,13 +18,13 @@ export default function RenderItem({
         <CheckBox
           value={item.checked}
           tintColors={{true: 'white', false: 'white'}}
-          onValueChange={onCheckBox}
+          onValueChange={onCheck}
         />
         <Text style={styles.textItemTitle}>{item.title}</Text>
         <TouchableNativeFeedback
           useForeground
           background={TouchableNativeFeedback.Ripple('#ffffff42')}
-          onPress={onPressDetail}>
+          onPress={openDetail}>
           <View style={styles.btnDetail}>
             <Icon
               name={open ? 'chevron-up' : 'chevron-down'}
@@ -38,12 +38,16 @@ export default function RenderItem({
         <View>
           <Text style={styles.textDefault}>{item.desc}</Text>
           <View style={styles.viewBtnOption}>
+            {/* button delete */}
             <TouchableNativeFeedback useForeground onPress={onPressDelete}>
               <View style={styles.btnDelete}>
                 <Icon name="trash-can" color={'white'} size={20} />
               </View>
             </TouchableNativeFeedback>
+
             <Gap width={10} />
+
+            {/* button edit */}
             <TouchableNativeFeedback useForeground onPress={onPressEdit}>
               <View style={styles.btnEdit}>
                 <Icon name="pencil" color={'white'} size={20} />

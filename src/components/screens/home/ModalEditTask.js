@@ -5,21 +5,22 @@ import {
   Modal,
   Pressable,
   TouchableOpacity,
-  TextInput,
   TouchableNativeFeedback,
+  TextInput,
   ActivityIndicator,
 } from 'react-native';
 import React from 'react';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Gap from '../Gap';
 
 export default function ModalEditTask({
   visible,
-  onRequestClose,
+  onClose,
   onChangeTitle,
   valueTitle,
   onChangeDesc,
   valueDesc,
-  onPressSubmit,
+  onSubmit,
   loading,
 }) {
   return (
@@ -27,14 +28,14 @@ export default function ModalEditTask({
       visible={visible}
       transparent
       animationType="fade"
-      onRequestClose={onRequestClose}>
+      onRequestClose={onClose}>
       <View style={styles.modalContainer}>
-        <Pressable style={styles.modalBackdrop} onPress={onRequestClose} />
+        <Pressable style={styles.modalBackdrop} onPress={onClose} />
         <View style={styles.viewModalContainer}>
           <View style={styles.viewModalHeader}>
             <Icon name={'notebook-edit-outline'} color={'white'} size={23} />
             <Text style={styles.textDefault}>Edit Tugas</Text>
-            <TouchableOpacity onPress={onRequestClose}>
+            <TouchableOpacity onPress={onClose}>
               <Icon name={'close-circle-outline'} color={'white'} size={23} />
             </TouchableOpacity>
           </View>
@@ -45,13 +46,14 @@ export default function ModalEditTask({
               <Icon name={'notebook-outline'} color={'black'} size={23} />
               <TextInput
                 placeholder="Judul tugas..."
-                style={{flex: 1, fontFamily: 'HelveticaNeue-Medium'}}
+                placeholderTextColor={'grey'}
+                style={styles.input}
                 onChangeText={onChangeTitle}
                 value={valueTitle}
               />
             </View>
 
-            <View style={{height: 15}} />
+            <Gap height={15} />
 
             {/* input task desc */}
             <Text style={styles.textInputTitle}>Deskripsi</Text>
@@ -59,16 +61,17 @@ export default function ModalEditTask({
               <Icon name={'text-box-outline'} color={'black'} size={23} />
               <TextInput
                 placeholder="Deskripsi tugas.."
-                style={{flex: 1, fontFamily: 'HelveticaNeue-Medium'}}
+                placeholderTextColor={'grey'}
+                style={styles.input}
                 onChangeText={onChangeDesc}
                 value={valueDesc}
               />
             </View>
 
-            <View style={{height: 30}} />
+            <Gap height={30} />
 
             {/* button submit */}
-            <TouchableNativeFeedback useForeground onPress={onPressSubmit}>
+            <TouchableNativeFeedback useForeground onPress={onSubmit}>
               <View style={styles.btnSubmitAdd}>
                 {loading ? (
                   <ActivityIndicator color={'white'} />
@@ -96,12 +99,17 @@ const styles = StyleSheet.create({
     color: 'white',
     fontFamily: 'HelveticaNeue-Medium',
   },
+  input: {
+    flex: 1,
+    marginHorizontal: 5,
+    fontFamily: 'HelveticaNeue-Medium',
+    color: 'black',
+  },
   btnSubmitAdd: {
     height: 45,
-    width: 130,
+    width: 120,
     backgroundColor: '#00677E',
     overflow: 'hidden',
-    // paddingHorizontal: 50,
     alignSelf: 'center',
     borderRadius: 45 / 2,
     elevation: 3,
