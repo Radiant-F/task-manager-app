@@ -81,6 +81,7 @@ export default function SignUp({navigation}) {
                   autoCapitalize="none"
                   style={styles.input}
                   onChangeText={setUsername}
+                  placeholderTextColor={'grey'}
                 />
               </View>
 
@@ -96,6 +97,7 @@ export default function SignUp({navigation}) {
                   autoCapitalize="none"
                   style={styles.input}
                   onChangeText={setEmail}
+                  placeholderTextColor={'grey'}
                 />
               </View>
 
@@ -111,6 +113,7 @@ export default function SignUp({navigation}) {
                   secureTextEntry={securePassword}
                   autoCapitalize="none"
                   onChangeText={setPassword}
+                  placeholderTextColor={'grey'}
                 />
                 <TouchableOpacity
                   onPress={() => setSecurePassword(!securePassword)}>
@@ -134,6 +137,7 @@ export default function SignUp({navigation}) {
                   secureTextEntry={secureConfirmPassword}
                   autoCapitalize="none"
                   onChangeText={setConfirmPassword}
+                  placeholderTextColor={'grey'}
                 />
                 <TouchableOpacity
                   onPress={() =>
