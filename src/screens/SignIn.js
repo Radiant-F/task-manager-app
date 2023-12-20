@@ -70,6 +70,7 @@ export default function SignIn({navigation}) {
               autoCapitalize="none"
               style={styles.input}
               onChangeText={setEmail}
+              placeholderTextColor={'grey'}
             />
           </View>
 
@@ -85,6 +86,7 @@ export default function SignIn({navigation}) {
               secureTextEntry={securePassword}
               autoCapitalize="none"
               onChangeText={setPassword}
+              placeholderTextColor={'grey'}
             />
             <TouchableOpacity
               onPress={() => setSecurePassword(!securePassword)}>
